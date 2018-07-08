@@ -35,7 +35,7 @@
 #include <string>
 #include <type_traits>
 
-#include <splitmix.hpp>
+#include "splitmix.hpp"
 
 #ifdef NDEBUG
 #pragma comment ( lib, "integer_utils-s.lib" )
