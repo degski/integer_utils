@@ -338,12 +338,8 @@ struct xoroshiro128plus {
     result_type operator ( ) ( ) noexcept {
         const std::uint64_t r = m_s0 + m_s1;
         m_s1 ^= m_s0;
-        // v0.1 55, 14, 36
-        // v1.0 24, 16, 37
-        m_s0 = _rotl64 ( m_s0, 24 );
-        m_s0 ^= m_s1;
-        m_s0 ^= m_s1 << 16; // a, b
-        m_s1 = _rotl64 ( m_s1, 37 ); // c
+        m_s0 = rotl ( m_s0, 24 ) ^ m_s1 ^ ( m_s1 << 16 );
+        m_s1 = rotl ( m_s1, 37 );
         return r;
     }
 
@@ -353,6 +349,10 @@ struct xoroshiro128plus {
     void jump ( ) noexcept;
 
     private:
+
+    static inline result_type rotl ( const result_type x, int k ) noexcept {
+        return ( x << k ) | ( x >> ( sizeof ( result_type ) - k ) );
+    }
 
     std::uint64_t m_s0, m_s1;
 };
