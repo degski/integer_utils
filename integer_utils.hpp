@@ -406,7 +406,82 @@ struct xoroshiro128plus_ {
     std::uint64_t m_s0, m_s1;
 };
 
-using xoroshiro128plus64 = xoroshiro128plus_<24, 16, 37>;
+
+
+namespace xoroshiro_detail {
+
+template <typename itype, typename rtype,
+    unsigned int a, unsigned int b, unsigned int c>
+    class xoroshiro {
+        protected:
+        itype s0_, s1_;
+
+        static constexpr unsigned int ITYPE_BITS = 8 * sizeof ( itype );
+        static constexpr unsigned int RTYPE_BITS = 8 * sizeof ( rtype );
+
+        static inline itype rotl ( const itype x, int k ) {
+            return ( x << k ) | ( x >> ( ITYPE_BITS - k ) );
+        }
+
+        public:
+        using result_type = rtype;
+
+        static constexpr result_type min ( ) { return 0; }
+        static constexpr result_type max ( ) { return ~result_type ( 0 ); }
+
+        xoroshiro ( itype s0 = itype ( 0xc1f651c67c62c6e0 ),
+            itype s1 = itype ( 0x30d89576f866ac9f ) )
+            // Easter-egg seed value for Xoroshiro128+ to remind users that
+            // they should seed their PRNGs properly.
+            : s0_ ( s0 ), s1_ ( ( s0 || s1 ) ? s1 : 1 ) {
+            // Nothing (else) to do.
+        }
+
+        void advance ( ) {
+            s1_ ^= s0_;
+            s0_ = rotl ( s0_, a ) ^ s1_ ^ ( s1_ << b );
+            s1_ = rotl ( s1_, c );
+        }
+
+        bool operator==( const xoroshiro& rhs ) {
+            return ( s0_ == rhs.s0_ ) && ( s1_ == rhs.s1_ );
+        }
+
+        bool operator!=( const xoroshiro& rhs ) {
+            return !operator==( rhs );
+        }
+
+        // Not (yet) implemented:
+        //   - arbitrary jumpahead (doable, but annoying to write).
+        //   - I/O
+        //   - Seeding from a seed_seq.
+};
+
+template <typename itype, typename rtype,
+    unsigned int a, unsigned int b, unsigned int c>
+    class xoroshiro_plus : public xoroshiro<itype, rtype, a, b, c> {
+        private:
+        using base = xoroshiro<itype, rtype, a, b, c>;
+        public:
+        using base::base;
+
+        rtype operator()( ) {
+            const itype result = base::s0_ + base::s1_;
+
+            base::advance ( );
+
+            return result >> ( base::ITYPE_BITS - base::RTYPE_BITS );
+        }
+};
+}
+
+using xoroshiro128plus64v0_1 =
+xoroshiro_detail::xoroshiro_plus<uint64_t, uint64_t, 55, 14, 36>;
+
+using xoroshiro128plus64v1_0 =
+xoroshiro_detail::xoroshiro_plus<uint64_t, uint64_t, 24, 16, 37>;
+
+using xoroshiro128plus64 = xoroshiro128plus64v1_0;
 
 
 // #ifdef __AVX2__
