@@ -319,25 +319,27 @@ T seed ( ) noexcept {
 //
 // Period 2 ^ 128 - 1.
 
-template<int a, int b, int c>
-struct xoroshiro128plus_ {
+template <typename StateType, typename ResultType, std::uint32_t a, std::uint32_t b, std::uint32_t c>
+class xoroshiro {
 
-    using result_type = std::uint64_t;
-
-    static constexpr result_type min ( ) {
-        return std::numeric_limits<result_type>::min ( );
+    static inline StateType rotl ( const StateType x, int k ) noexcept {
+        return ( x << k ) | ( x >> ( ( 8 * sizeof ( StateType ) ) - k ) );
     }
 
-    static constexpr result_type max ( ) {
-        return std::numeric_limits<result_type>::max ( );
-    }
+    public:
 
-    xoroshiro128plus_ ( ) noexcept {
+    using result_type = ResultType;
+
+    static inline constexpr result_type min ( ) noexcept { return std::numeric_limits<result_type>::min ( ); }
+    static inline constexpr result_type max ( ) noexcept { return std::numeric_limits<result_type>::max ( ); }
+
+    xoroshiro ( ) noexcept {
         auto _seed = [ ] ( ) { result_type s; iu::seed ( s ); return s; };
         m_s0 = _seed ( );
         m_s1 = _seed ( );
     }
-    xoroshiro128plus_ ( const std::uint64_t s_ ) noexcept {
+
+    xoroshiro ( const std::uint64_t s_ ) noexcept {
         seed ( s_ );
     }
 
@@ -347,10 +349,18 @@ struct xoroshiro128plus_ {
         m_s1 = rng ( );
     }
 
-    result_type operator ( ) ( ) noexcept {
-        const std::uint64_t r = m_s0 + m_s1;
-        advance ( );
-        return r;
+    bool operator == ( const xoroshiro & rhs ) noexcept {
+        return ( m_s0 == rhs.m_s0 ) && ( m_s1 == rhs.m_s1 );
+    }
+
+    bool operator != ( const xoroshiro & rhs ) {
+        return !operator==( rhs );
+    }
+
+    ResultType operator ( ) ( ) noexcept {
+        const StateType result = m_s0 + m_s1;
+        next ( );
+        return result >> ( 8 * ( sizeof ( StateType ) - sizeof ( ResultType ) ) );
     }
 
     // This is the jump function for the generator. It is equivalent
@@ -364,11 +374,9 @@ struct xoroshiro128plus_ {
                 s0 ^= m_s0;
                 s1 ^= m_s1;
             }
-            // v0.1 55, 14, 36
-            // v1.0 24, 16, 37
             m_s1 = m_s0 ^ m_s1;
-            m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << a ); // a, b
-            m_s1 = rotl ( m_s1, c ); // c
+            m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << a );
+            m_s1 = rotl ( m_s1, c );
         }
         for ( std::uint64_t b = 0; b < 64ULL; ++b ) {
             if ( j1 & 1ULL << b ) {
@@ -376,112 +384,26 @@ struct xoroshiro128plus_ {
                 s1 ^= m_s1;
             }
             m_s1 = m_s0 ^ m_s1;
-            m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << b ); // a, b
-            m_s1 = rotl ( m_s1, c ); // c
+            m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << b );
+            m_s1 = rotl ( m_s1, c );
         }
         m_s0 = s0;
         m_s1 = s1;
     }
 
-    bool operator == ( const xoroshiro128plus_ & rhs ) noexcept {
-        return ( m_s0 == rhs.m_s0 ) && ( m_s1 == rhs.m_s1 );
-    }
-
-    bool operator != ( const xoroshiro128plus_ & rhs ) noexcept {
-        return !operator == ( rhs );
-    }
-
     private:
 
-    void advance ( ) noexcept {
+    void next ( ) noexcept {
         m_s1 ^= m_s0;
         m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << b );
         m_s1 = rotl ( m_s1, c );
     }
 
-    static inline result_type rotl ( const result_type x, int k ) noexcept {
-        return ( x << k ) | ( x >> ( sizeof ( result_type ) - k ) );
-    }
-
-    std::uint64_t m_s0, m_s1;
+    StateType m_s0, m_s1;
 };
 
-
-
-namespace xoroshiro_detail {
-
-template <typename itype, typename rtype,
-    unsigned int a, unsigned int b, unsigned int c>
-    class xoroshiro {
-        protected:
-        itype s0_, s1_;
-
-        static constexpr unsigned int ITYPE_BITS = 8 * sizeof ( itype );
-        static constexpr unsigned int RTYPE_BITS = 8 * sizeof ( rtype );
-
-        static inline itype rotl ( const itype x, int k ) {
-            return ( x << k ) | ( x >> ( ITYPE_BITS - k ) );
-        }
-
-        public:
-        using result_type = rtype;
-
-        static constexpr result_type min ( ) { return 0; }
-        static constexpr result_type max ( ) { return ~result_type ( 0 ); }
-
-        xoroshiro ( itype s0 = itype ( 0xc1f651c67c62c6e0 ),
-            itype s1 = itype ( 0x30d89576f866ac9f ) )
-            // Easter-egg seed value for Xoroshiro128+ to remind users that
-            // they should seed their PRNGs properly.
-            : s0_ ( s0 ), s1_ ( ( s0 || s1 ) ? s1 : 1 ) {
-            // Nothing (else) to do.
-        }
-
-        void advance ( ) {
-            s1_ ^= s0_;
-            s0_ = rotl ( s0_, a ) ^ s1_ ^ ( s1_ << b );
-            s1_ = rotl ( s1_, c );
-        }
-
-        bool operator==( const xoroshiro& rhs ) {
-            return ( s0_ == rhs.s0_ ) && ( s1_ == rhs.s1_ );
-        }
-
-        bool operator!=( const xoroshiro& rhs ) {
-            return !operator==( rhs );
-        }
-
-        // Not (yet) implemented:
-        //   - arbitrary jumpahead (doable, but annoying to write).
-        //   - I/O
-        //   - Seeding from a seed_seq.
-};
-
-template <typename itype, typename rtype,
-    unsigned int a, unsigned int b, unsigned int c>
-    class xoroshiro_plus : public xoroshiro<itype, rtype, a, b, c> {
-        private:
-        using base = xoroshiro<itype, rtype, a, b, c>;
-        public:
-        using base::base;
-
-        rtype operator()( ) {
-            const itype result = base::s0_ + base::s1_;
-
-            base::advance ( );
-
-            return result >> ( base::ITYPE_BITS - base::RTYPE_BITS );
-        }
-};
-}
-
-using xoroshiro128plus64v0_1 =
-xoroshiro_detail::xoroshiro_plus<uint64_t, uint64_t, 55, 14, 36>;
-
-using xoroshiro128plus64v1_0 =
-xoroshiro_detail::xoroshiro_plus<uint64_t, uint64_t, 24, 16, 37>;
-
-using xoroshiro128plus64 = xoroshiro128plus64v1_0;
+// using xoroshiro128plus64 = xoroshiro<uint64_t, uint64_t, 55, 14, 36>;
+using xoroshiro128plus64 = xoroshiro<uint64_t, uint64_t, 24, 16, 37>;
 
 
 // #ifdef __AVX2__
@@ -509,7 +431,7 @@ struct xoroshiro4x128plusavx {
 
     __declspec ( align ( 32 ) ) __m256i m_s0, m_s1, m_r;
 
-    static constexpr std::size_t start_case ( ) noexcept {
+    static constexpr std::size_t start_case ( ) {
         return std::size_t { 3 };
     }
 
