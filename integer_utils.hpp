@@ -35,6 +35,7 @@
 #include <string>
 #include <type_traits>
 
+#include <splitmix.hpp>
 
 #ifdef NDEBUG
 #pragma comment ( lib, "integer_utils-s.lib" )
@@ -318,37 +319,85 @@ T seed ( ) noexcept {
 //
 // Period 2 ^ 128 - 1.
 
-struct xoroshiro128plus {
+template<int a, int b, int c>
+struct xoroshiro128plus_ {
 
     using result_type = std::uint64_t;
 
-    constexpr static result_type min ( ) {
+    static constexpr result_type min ( ) {
         return std::numeric_limits<result_type>::min ( );
     }
 
-    constexpr static result_type max ( ) {
+    static constexpr result_type max ( ) {
         return std::numeric_limits<result_type>::max ( );
     }
 
-    xoroshiro128plus ( ) noexcept;
-    xoroshiro128plus ( const std::uint64_t s_ ) noexcept;
+    xoroshiro128plus_ ( ) noexcept {
+        auto _seed = [ ] ( ) { result_type s; iu::seed ( s ); return s; };
+        m_s0 = _seed ( );
+        m_s1 = _seed ( );
+    }
+    xoroshiro128plus_ ( const std::uint64_t s_ ) noexcept {
+        seed ( s_ );
+    }
 
-    void seed ( const std::uint64_t s_ ) noexcept;
+    void seed ( const std::uint64_t s_ ) noexcept {
+        splitmix64 rng ( s_ );
+        m_s0 = rng ( );
+        m_s1 = rng ( );
+    }
 
     result_type operator ( ) ( ) noexcept {
         const std::uint64_t r = m_s0 + m_s1;
-        m_s1 ^= m_s0;
-        m_s0 = rotl ( m_s0, 24 ) ^ m_s1 ^ ( m_s1 << 16 );
-        m_s1 = rotl ( m_s1, 37 );
+        advance ( );
         return r;
     }
 
     // This is the jump function for the generator. It is equivalent
     // to 2^64 calls to next(); it can be used to generate 2^64
     // non-overlapping subsequences for parallel computations.
-    void jump ( ) noexcept;
+    void jump ( ) noexcept {
+        static const std::uint64_t j0 = 0xbeac0467eba5facb, j1 = 0xd86b048b86aa9922;//???
+        std::uint64_t s0 = 0, s1 = 0;
+        for ( std::size_t b = 0; b < 64ULL; ++b ) {
+            if ( j0 & 1ULL << b ) {
+                s0 ^= m_s0;
+                s1 ^= m_s1;
+            }
+            // v0.1 55, 14, 36
+            // v1.0 24, 16, 37
+            m_s1 = m_s0 ^ m_s1;
+            m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << a ); // a, b
+            m_s1 = rotl ( m_s1, c ); // c
+        }
+        for ( std::uint64_t b = 0; b < 64ULL; ++b ) {
+            if ( j1 & 1ULL << b ) {
+                s0 ^= m_s0;
+                s1 ^= m_s1;
+            }
+            m_s1 = m_s0 ^ m_s1;
+            m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << b ); // a, b
+            m_s1 = rotl ( m_s1, c ); // c
+        }
+        m_s0 = s0;
+        m_s1 = s1;
+    }
+
+    bool operator == ( const xoroshiro128plus_ & rhs ) noexcept {
+        return ( m_s0 == rhs.m_s0 ) && ( m_s1 == rhs.m_s1 );
+    }
+
+    bool operator != ( const xoroshiro128plus_ & rhs ) noexcept {
+        return !operator == ( rhs );
+    }
 
     private:
+
+    void advance ( ) noexcept {
+        m_s1 ^= m_s0;
+        m_s0 = rotl ( m_s0, a ) ^ m_s1 ^ ( m_s1 << b );
+        m_s1 = rotl ( m_s1, c );
+    }
 
     static inline result_type rotl ( const result_type x, int k ) noexcept {
         return ( x << k ) | ( x >> ( sizeof ( result_type ) - k ) );
@@ -356,6 +405,9 @@ struct xoroshiro128plus {
 
     std::uint64_t m_s0, m_s1;
 };
+
+using xoroshiro128plus64 = xoroshiro128plus_<24, 16, 37>;
+
 
 // #ifdef __AVX2__
 

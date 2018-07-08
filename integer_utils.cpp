@@ -28,8 +28,6 @@
 #include <cmath>
 #include <cassert>
 
-#include "splitmix.hpp"
-
 #include "sprp32.h" // https://github.com/wizykowski/miller-rabin
 #include "sprp64.h"
 
@@ -124,50 +122,6 @@ void seed_bw ( std::uint32_t & s_ ) noexcept {
 void seed_bw ( std::uint64_t & s_ ) noexcept {
     _rdseed64_step ( &s_ );
 }
-
-xoroshiro128plus::xoroshiro128plus ( ) noexcept {
-    auto _seed = [ ] ( ) { result_type s; iu::seed ( s ); return s; };
-    m_s0 = _seed ( );
-    m_s1 = _seed ( );
-}
-
-xoroshiro128plus::xoroshiro128plus ( const std::uint64_t s_ ) noexcept {
-    seed ( s_ );
-}
-
-void xoroshiro128plus::seed ( const std::uint64_t s_ ) noexcept {
-    splitmix64 rng ( s_ );
-    m_s0 = rng ( );
-    m_s1 = rng ( );
-}
-
-void xoroshiro128plus::jump ( ) noexcept {
-    static const std::uint64_t j0 = 0xbeac0467eba5facb, j1 = 0xd86b048b86aa9922;//???
-    std::uint64_t s0 = 0, s1 = 0;
-    for ( std::size_t b = 0; b < 64ULL; ++b ) {
-        if ( j0 & 1ULL << b ) {
-            s0 ^= m_s0;
-            s1 ^= m_s1;
-        }
-        // v0.1 55, 14, 36
-        // v1.0 24, 16, 37
-        m_s1 = m_s0 ^ m_s1;
-        m_s0 = _rotl64 ( m_s0, 24 ) ^ m_s1 ^ ( m_s1 << 16 ); // a, b
-        m_s1 = _rotl64 ( m_s1, 37 ); // c
-    }
-    for ( std::uint64_t b = 0; b < 64ULL; ++b ) {
-        if ( j1 & 1ULL << b ) {
-            s0 ^= m_s0;
-            s1 ^= m_s1;
-        }
-        m_s1 = m_s0 ^ m_s1;
-        m_s0 = _rotl64 ( m_s0, 24 ) ^ m_s1 ^ ( m_s1 << 16 ); // a, b
-        m_s1 = _rotl64 ( m_s1, 37 ); // c
-    }
-    m_s0 = s0;
-    m_s1 = s1;
-}
-
 
 // #ifdef __AVX2__
 
