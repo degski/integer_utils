@@ -357,7 +357,7 @@ struct xoroshiro128plus {
     std::uint64_t m_s0, m_s1;
 };
 
-#ifdef __AVX2__
+// #ifdef __AVX2__
 
 struct xoroshiro4x128plusavx {
 
@@ -389,7 +389,7 @@ struct xoroshiro4x128plusavx {
     std::size_t m_i;
 };
 
-#endif
+// #endif
 
 template<typename T, typename = std::enable_if_t<std::conjunction_v<std::is_integral<T>, std::is_unsigned<T>>>>
 void print_bits ( const T n ) noexcept {

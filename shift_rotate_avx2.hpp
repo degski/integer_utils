@@ -25,11 +25,11 @@
 
 #include <immintrin.h>
 
-#ifdef __AVX2__
+// #ifdef __AVX2__
 
 __m256i _mm256_sli_si256 ( __m256i, int );
 __m256i _mm256_sri_si256 ( __m256i, int );
 __m256i _mm256_rli_si256 ( __m256i, int );
 __m256i _mm256_rri_si256 ( __m256i, int );
 
-#endif
+// #endif

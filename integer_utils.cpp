@@ -169,7 +169,7 @@ void xoroshiro128plus::jump ( ) noexcept {
 }
 
 
-#ifdef __AVX2__
+// #ifdef __AVX2__
 
 xoroshiro4x128plusavx::xoroshiro4x128plusavx ( ) noexcept {
     auto _seed = [ ] ( ) { result_type s; iu::seed_bw ( s ); return s; };
@@ -188,7 +188,13 @@ void xoroshiro4x128plusavx::seed ( const std::uint64_t s_ ) noexcept {
     m_s1 = _mm256_set_epi64x ( rng ( ), rng ( ), rng ( ), rng ( ) );
     m_i  = start_case ( );
 }
-
+/*
+void advance ( ) {
+    s1_ ^= s0_;
+    s0_ = rotl ( s0_, a ) ^ s1_ ^ ( s1_ << b );
+    s1_ = rotl ( s1_, c );
+}
+*/
 typename xoroshiro4x128plusavx::result_type xoroshiro4x128plusavx::operator ( ) ( ) noexcept {
 
     switch ( m_i ) {
@@ -199,11 +205,19 @@ typename xoroshiro4x128plusavx::result_type xoroshiro4x128plusavx::operator ( ) 
         {
             m_i  = 0;
             m_r  = _mm256_add_epi64 ( m_s0, m_s1 );
+
+            m_s1 = _mm256_xor_si256 ( m_s1, m_s0 );
+            m_s0 = _mm256_xor_si256 ( _mm256_xor_si256 ( _mm256_rli_si256 ( m_s0, 24 * 4 ), m_s1 ), _mm256_slli_epi64 ( m_s1, 16 ) );
+            m_s1 = _mm256_rli_si256 ( m_s1, 37 * 4 );
+
+            /*
             m_s1 = _mm256_xor_si256 ( m_s1, m_s0 );
             m_s0 = _mm256_rli_si256 ( m_s0, 24 );
             m_s0 = _mm256_xor_si256 ( m_s0, m_s1 );
             m_s0 = _mm256_sli_si256 ( m_s1, 16 );
             m_s1 = _mm256_rli_si256 ( m_s1, 37 );
+            */
+
             return _mm256_extract_epi64 ( m_r, 3 );
         }
     }
@@ -220,7 +234,7 @@ void print_u64 ( __m256i n ) noexcept {
     printf ( "%I64u %I64u %I64u %I64u", ( std::uint64_t ) _mm256_extract_epi64 ( n, 3 ), ( std::uint64_t ) _mm256_extract_epi64 ( n, 2 ), ( std::uint64_t ) _mm256_extract_epi64 ( n, 1 ), ( std::uint64_t ) _mm256_extract_epi64 ( n, 0 ) );
 }
 
-#endif
+// #endif
 }
 /*
 

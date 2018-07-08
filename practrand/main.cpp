@@ -34,10 +34,12 @@
 #endif
 
 #include "../integer_utils.hpp"
+#include "../splitmix.hpp"
+#include "../xoroshiro_meo.hpp"
 
-
+// using Generator = splitmix64;
+// using Generator = meo::xoroshiro128plus64;
 using Generator = iu::xoroshiro4x128plusavx;
-
 
 auto main ( ) -> int {
 

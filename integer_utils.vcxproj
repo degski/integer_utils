@@ -126,8 +126,8 @@
       </Message>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>copy /A /V /Y integer_utils.hpp $(VC_X64_INCLUDE)\ &gt; NUL
-copy /A /V /Y shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ &gt; NUL</Command>
+      <Command>copy integer_utils.hpp $(VC_X64_INCLUDE)\ /Y /D
+copy shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -182,8 +182,8 @@ copy /A /V /Y shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ &gt; NUL</Command>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
     <PreBuildEvent>
-      <Command>copy /A /V /Y integer_utils.hpp $(VC_X64_INCLUDE)\ &gt; NUL
-copy /A /V /Y shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ &gt; NUL</Command>
+      <Command>copy integer_utils.hpp $(VC_X64_INCLUDE)\ /Y /D
+copy shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

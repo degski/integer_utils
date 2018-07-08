@@ -23,7 +23,7 @@
 
 #include "shift_rotate_avx2.hpp"
 
-#ifdef __AVX2__
+// #ifdef __AVX2__
 
 __m256i left_shift_000_063 ( __m256i a, int n ) { // 6
 
@@ -191,4 +191,4 @@ __m256i _mm256_rri_si256 ( __m256i a, int n ) {
     else           return n < 192 ? right_rotate_128_191 ( a, n % 64 ) : right_rotate_192_255 ( a, n % 64 );
 }
 
-#endif // __AVX2__
+// #endif // __AVX2__
