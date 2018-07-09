@@ -122,6 +122,13 @@ void seed ( std::uint64_t & s_ ) noexcept {
 #endif
 #endif
 
+std::uintmax_t seed ( ) noexcept {
+    std::uintmax_t r;
+    iu::seed ( r );
+    return r;
+}
+
+
 // #ifdef __AVX2__
 
 xoroshiro4x128plusavx::xoroshiro4x128plusavx ( ) noexcept {
