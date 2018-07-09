@@ -82,26 +82,18 @@ bool is_prime ( const std::uint64_t n_ ) noexcept {
 
 // Random.
 
-// Seeding, from Intel Broadwell CPU onwards.
+// Seeding.
 
-static inline std::uint32_t get_seedu32_ ( ) noexcept {
-    std::uint32_t seed;
-    rand_s ( &seed );
-    return seed;
+#if defined ( __AVX2__ ) && defined ( __GNUC__ )
+void seed ( std::uint32_t & s_ ) noexcept {
+    _rdseed32_step ( &s_ );
 }
 
-void seed ( std::uint8_t & s_ ) noexcept {
-    std::uint32_t random_val;
-    rand_s ( &random_val );
-    s_ = ( std::uint8_t ) ( random_val >> 24 ) ^ ( std::uint8_t ) ( random_val >> 16 ) ^ ( std::uint8_t ) ( random_val >> 8 ) ^ ( std::uint8_t ) random_val;
+void seed ( std::uint64_t & s_ ) noexcept {
+    _rdseed64_step ( &s_ );
 }
-
-void seed ( std::uint16_t & s_ ) noexcept {
-    std::uint32_t random_val;
-    rand_s ( &random_val );
-    s_ = ( std::uint16_t ) ( random_val >> 16 ) ^ ( std::uint16_t ) random_val;
-}
-
+#else
+#ifdef _WIN32
 void seed ( std::uint32_t & s_ ) noexcept {
     rand_s ( &s_ );
 }
@@ -110,23 +102,30 @@ void seed ( std::uint64_t & s_ ) noexcept {
     rand_s ( ( ( std::uint32_t * ) & s_ ) + 0 );
     rand_s ( ( ( std::uint32_t * ) & s_ ) + 1 );
 }
-
-void seed_bw ( std::uint16_t & s_ ) noexcept {
-    _rdseed16_step ( &s_ );
+#else
+}
+#include <random>
+namespace iu {
+void seed ( std::uint32_t & s_ ) noexcept {
+    s_ = [ ] ( ) { std::random_device rdev; return ( std::uint32_t ) rdev ( ); } ( );
 }
 
-void seed_bw ( std::uint32_t & s_ ) noexcept {
-    _rdseed32_step ( &s_ );
+void seed ( std::uint64_t & s_ ) noexcept {
+    if constexpr ( std::is_same<typename std::random_device::result_type, std::uint64_t>::value ) {
+        s_ = [ ] ( ) { std::random_device rdev; return ( std::uint32_t ) rdev ( ); } ( );
+    }
+    else {
+        auto _seed = [ ] ( ) { std::random_device rdev; return ( std::uint64_t ) rdev ( ); };
+        s_ = ( _seed ( ) << 32 ) & _seed ( );
+    }
 }
-
-void seed_bw ( std::uint64_t & s_ ) noexcept {
-    _rdseed64_step ( &s_ );
-}
+#endif
+#endif
 
 // #ifdef __AVX2__
 
 xoroshiro4x128plusavx::xoroshiro4x128plusavx ( ) noexcept {
-    auto _seed = [ ] ( ) { result_type s; iu::seed_bw ( s ); return s; };
+    auto _seed = [ ] ( ) { result_type s; iu::seed ( s ); return s; };
     m_s0 = _mm256_set_epi64x ( _seed ( ), _seed ( ), _seed ( ), _seed ( ) );
     m_s1 = _mm256_set_epi64x ( _seed ( ), _seed ( ), _seed ( ), _seed ( ) );
     m_i  = start_case ( );

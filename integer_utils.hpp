@@ -287,9 +287,7 @@ T bit_xor ( const T l_, const T r_ ) noexcept {
 
 // Random.
 
-// Seeding, from Intel Broadwell CPU onwards.
-void seed ( std::uint8_t  & s_ ) noexcept;
-void seed ( std::uint16_t & s_ ) noexcept;
+// Seeding.
 void seed ( std::uint32_t & s_ ) noexcept;
 void seed ( std::uint64_t & s_ ) noexcept;
 
