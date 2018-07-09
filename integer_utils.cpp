@@ -132,9 +132,8 @@ std::uintmax_t seed ( ) noexcept {
 // #ifdef __AVX2__
 
 xoroshiro4x128plusavx::xoroshiro4x128plusavx ( ) noexcept {
-    auto _seed = [ ] ( ) { result_type s; iu::seed ( s ); return s; };
-    m_s0 = _mm256_set_epi64x ( _seed ( ), _seed ( ), _seed ( ), _seed ( ) );
-    m_s1 = _mm256_set_epi64x ( _seed ( ), _seed ( ), _seed ( ), _seed ( ) );
+    m_s0 = _mm256_set_epi64x ( iu::seed ( ), iu::seed ( ), iu::seed ( ), iu::seed ( ) );
+    m_s1 = _mm256_set_epi64x ( iu::seed ( ), iu::seed ( ), iu::seed ( ), iu::seed ( ) );
     m_i  = start_case ( );
 }
 
@@ -150,7 +149,6 @@ void xoroshiro4x128plusavx::seed ( const std::uint64_t s_ ) noexcept {
 }
 
 typename xoroshiro4x128plusavx::result_type xoroshiro4x128plusavx::operator ( ) ( ) noexcept {
-
     switch ( m_i ) {
         case 0:  m_i = 1; return _mm256_extract_epi64 ( m_r, 0 );
         case 1:  m_i = 2; return _mm256_extract_epi64 ( m_r, 1 );

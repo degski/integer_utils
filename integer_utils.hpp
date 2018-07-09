@@ -288,16 +288,11 @@ T bit_xor ( const T l_, const T r_ ) noexcept {
 // Random.
 
 // Seeding.
+
 void seed ( std::uint32_t & s_ ) noexcept;
 void seed ( std::uint64_t & s_ ) noexcept;
 std::uintmax_t seed ( ) noexcept;
 
-template<typename T, typename = std::enable_if_t<std::conjunction_v<std::is_integral<T>, std::is_unsigned<T>>>>
-T seed ( ) noexcept {
-    T rv;
-    seed ( rv );
-    return rv;
-}
 
 // http://xoroshiro.di.unimi.it/
 
