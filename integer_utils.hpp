@@ -327,6 +327,7 @@ class xoroshiro {
     static inline constexpr result_type min ( ) noexcept { return std::numeric_limits<result_type>::min ( ); }
     static inline constexpr result_type max ( ) noexcept { return std::numeric_limits<result_type>::max ( ); }
 
+    // Seed by default.
     xoroshiro ( ) noexcept {
         auto _seed = [ ] ( ) { result_type s; iu::seed ( s ); return s; };
         m_s0 = _seed ( );

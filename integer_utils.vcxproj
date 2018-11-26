@@ -34,7 +34,9 @@
     <ProjectGuid>{60F7DEB1-A0CA-4907-B177-2DEEB7B80DE1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>small_primes</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <VcpkgTriplet Condition="'$(Platform)'=='Win32'">x86-windows-static</VcpkgTriplet>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows-static</VcpkgTriplet>
     <ProjectName>integer_utils</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

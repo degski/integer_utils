@@ -16,6 +16,7 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 Melissa E. O'Neill
+ * Copyright (c) 2018 degski
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -89,7 +90,7 @@ inline IntRep pop_count(IntRep x) {
 #endif
 
 
-template <uint64_t m1, uint64_t m2, 
+template <uint64_t m1, uint64_t m2,
           unsigned int p, unsigned int q, unsigned int r,
           uint64_t m3, uint64_t m4,
           unsigned int s, unsigned int t, unsigned int u>
@@ -106,7 +107,7 @@ protected:
 
     static uint64_t mix_gamma(uint64_t x) {
         x ^= x >> p;
-        x *= m1; 
+        x *= m1;
         x ^= x >> q;
         x *= m2;
         x ^= x >> r;
@@ -115,9 +116,9 @@ protected:
         return (n < 24) ? x ^ 0xaaaaaaaaaaaaaaaa : x;
     }
 
-    static uint64_t mix64(uint64_t x) {
+    static inline constexpr result_type mix64(uint64_t x) { // degski: changed return type to result_type.
         x ^= x >> s;
-        x *= m3; 
+        x *= m3;
         x ^= x >> t;
         x *= m4;
         x ^= x >> u;
@@ -142,8 +143,15 @@ public:
         // Nothing (else) to do.
     }
 
-    uint64_t operator()() {
+    result_type operator()() { // degski: changed return type to result_type.
         return mix64(next_seed());
+    }
+
+    template<typename It>
+    void generate (It it, const It end) { // degski: added this function.
+        while (it != end) {
+            *it++ = mix64(next_seed());
+        }
     }
 
     void advance(uint64_t delta) {
