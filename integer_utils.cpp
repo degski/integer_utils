@@ -1,7 +1,7 @@
 
 // MIT License
 //
-// Copyright (c) 2018 degski
+// Copyright (c) 2018, 2019 degski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -142,7 +142,7 @@ xoroshiro4x128plusavx::xoroshiro4x128plusavx ( const std::uint64_t s_ ) noexcept
 }
 
 void xoroshiro4x128plusavx::seed ( const std::uint64_t s_ ) noexcept {
-    splitmix64 rng ( s_ );
+    sax::splitmix64 rng ( s_ );
     m_s0 = _mm256_set_epi64x ( rng ( ), rng ( ), rng ( ), rng ( ) );
     m_s1 = _mm256_set_epi64x ( rng ( ), rng ( ), rng ( ), rng ( ) );
     m_i  = start_case ( );

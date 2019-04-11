@@ -130,8 +130,7 @@
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>xcopy integer_utils.hpp $(VC_X64_INCLUDE)\ /Y /D
-xcopy shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ /Y /D
-xcopy splitmix.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
+xcopy shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -187,8 +186,7 @@ xcopy splitmix.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
     </ProjectReference>
     <PreBuildEvent>
       <Command>xcopy integer_utils.hpp $(VC_X64_INCLUDE)\ /Y /D
-xcopy shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ /Y /D
-xcopy splitmix.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
+xcopy shift_rotate_avx2.hpp $(VC_X64_INCLUDE)\ /Y /D</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,7 +1,7 @@
 
 // MIT License
 //
-// Copyright (c) 2018 degski
+// Copyright (c) 2018, 2019 degski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@
 #include <string>
 #include <type_traits>
 
-#include "splitmix.hpp"
+#include <sax/splitmix.hpp> // https://github.com/degski/Sax/blob/master/splitmix.hpp
 
 #ifdef NDEBUG
 #pragma comment ( lib, "integer_utils-s.lib" )
@@ -339,7 +339,7 @@ class xoroshiro {
     }
 
     void seed ( const std::uint64_t s_ ) noexcept {
-        splitmix64 rng ( s_ );
+        sax::splitmix64 rng ( s_ );
         m_s0 = rng ( );
         m_s1 = rng ( );
     }
